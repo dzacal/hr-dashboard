@@ -1,6 +1,6 @@
 // ============================================================
 // PTO Calculation Engine
-// Bi-weekly pay periods anchored to March 20, 2026
+// Bi-weekly pay periods anchored to January 2, 2026
 // ============================================================
 
 export type EmployeeType = 'non_executive' | 'executive'
@@ -31,10 +31,9 @@ export function getTier(employeeType: EmployeeType, monthsOfService: number): Ac
   return tiers.find(t => monthsOfService >= t.minMonths && (t.maxMonths === null || monthsOfService <= t.maxMonths))!
 }
 
-// Bi-weekly pay dates anchored to March 20, 2026 (next pay period).
-// Going backwards: Mar 6, Feb 20, Feb 6, Jan 23, Jan 9, Dec 26 2025, ...
-// Going forwards:  Apr 3, Apr 17, May 1, ...
-const ANCHOR_DATE = new Date('2026-03-20')
+// Bi-weekly pay dates anchored to January 2, 2026 (first pay period of the year).
+// Going forwards: Jan 16, Jan 30, Feb 13, Feb 27, Mar 13, ...
+const ANCHOR_DATE = new Date('2026-01-02')
 const PAY_PERIOD_DAYS = 14
 
 export function getPayPeriodDates(fromDate: Date, toDate: Date): Date[] {
