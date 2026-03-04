@@ -9,6 +9,7 @@ const links = [
   { href: '/admin/pto', label: 'PTO Requests', icon: '📅' },
   { href: '/admin/remote', label: 'Remote Requests', icon: '🏠' },
   { href: '/admin/messages', label: 'HR Messages', icon: '✉️' },
+  { href: '/admin/holidays', label: 'Holidays', icon: '🗓️' },
 ]
 
 export default function AdminSidebar({ userRole }: { userRole: string }) {
