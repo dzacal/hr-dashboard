@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { differenceInBusinessDays, addDays, parseISO } from 'date-fns'
+import { differenceInBusinessDays, parseISO } from 'date-fns'
 import { createClient } from '@/lib/supabase/client'
 
 export default function PTORequestForm({ userId, availableDays, adminEmail }: { userId: string; availableDays: number; adminEmail: string }) {
@@ -12,29 +12,35 @@ export default function PTORequestForm({ userId, availableDays, adminEmail }: { 
   const [error, setError] = useState('')
   const [form, setForm] = useState({ start_date: '', end_date: '', reason: '' })
 
+  const availableHours = availableDays * 8
+
   function set(field: string, value: string) {
     setForm(prev => ({ ...prev, [field]: value }))
   }
 
-  function calcDays() {
+  function calcBusinessDays() {
     if (!form.start_date || !form.end_date) return 0
     const days = differenceInBusinessDays(parseISO(form.end_date), parseISO(form.start_date)) + 1
     return Math.max(0, days)
   }
 
+  function calcHours() {
+    return calcBusinessDays() * 8
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
-    const days = calcDays()
-    if (days <= 0) { setError('Invalid date range.'); return }
-    if (days > availableDays) { setError(`You only have ${availableDays.toFixed(1)} days available.`); return }
+    const hours = calcHours()
+    if (hours <= 0) { setError('Invalid date range.'); return }
+    if (hours > availableHours) { setError(`You only have ${availableHours.toFixed(2)} hours available.`); return }
 
     setLoading(true)
     const { error: dbErr } = await supabase.from('pto_requests').insert({
       employee_id: userId,
       start_date: form.start_date,
       end_date: form.end_date,
-      days_requested: days,
+      hours_requested: hours,
       reason: form.reason,
       status: 'pending',
     })
@@ -44,7 +50,7 @@ export default function PTORequestForm({ userId, availableDays, adminEmail }: { 
     await fetch('/api/notify/new-request', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ adminEmail, type: 'PTO', days, start: form.start_date, end: form.end_date }),
+      body: JSON.stringify({ adminEmail, type: 'PTO', hours, start: form.start_date, end: form.end_date }),
     })
 
     setOpen(false)
@@ -84,7 +90,8 @@ export default function PTORequestForm({ userId, availableDays, adminEmail }: { 
 
               {form.start_date && form.end_date && (
                 <p className="text-sm text-slate-600 bg-slate-50 px-3 py-2 rounded-lg">
-                  Business days requested: <strong>{calcDays()}</strong> (Available: {availableDays.toFixed(1)})
+                  <strong>{calcBusinessDays()} business day{calcBusinessDays() !== 1 ? 's' : ''}</strong> = <strong>{calcHours()} hrs</strong>
+                  <span className="text-slate-400 ml-2">(Available: {availableHours.toFixed(2)} hrs)</span>
                 </p>
               )}
 

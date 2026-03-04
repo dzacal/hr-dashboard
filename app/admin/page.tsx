@@ -1,13 +1,8 @@
 export const dynamic = 'force-dynamic'
 
 import { createClient } from '@/lib/supabase/server'
-import { differenceInMonths } from 'date-fns'
-
-function calcPTO(startDate: string, accrualRate: number, usedDays: number) {
-  const months = Math.max(0, differenceInMonths(new Date(), new Date(startDate)))
-  const accrued = months * accrualRate
-  return Math.max(0, accrued - usedDays)
-}
+import { calculatePTO } from '@/lib/pto'
+import type { EmployeeType } from '@/lib/pto'
 
 export default async function AdminDashboard() {
   const supabase = await createClient()
@@ -17,12 +12,34 @@ export default async function AdminDashboard() {
     { data: ptoPending },
     { data: remotePending },
     { data: messages },
+    { data: allPtoRequests },
   ] = await Promise.all([
-    supabase.from('profiles').select('*').eq('role', 'employee'),
+    supabase.from('profiles').select('*, pto_requests(hours_requested, status)').eq('role', 'employee'),
     supabase.from('pto_requests').select('*, profiles(full_name)').eq('status', 'pending'),
     supabase.from('remote_requests').select('*, profiles(full_name)').eq('status', 'pending'),
     supabase.from('hr_messages').select('*, profiles(full_name)').eq('status', 'unread').order('created_at', { ascending: false }),
+    supabase.from('pto_requests').select('employee_id, hours_requested, status'),
   ])
+
+  // Build a map of used hours per employee
+  const usedHoursMap: Record<string, number> = {}
+  for (const r of allPtoRequests ?? []) {
+    if (r.status === 'approved') {
+      usedHoursMap[r.employee_id] = (usedHoursMap[r.employee_id] ?? 0) + (r.hours_requested ?? 0)
+    }
+  }
+
+  // Calculate total employees with low PTO (< 20 hrs)
+  const lowPtoCount = employees?.filter(emp => {
+    if (!emp.start_date) return false
+    const pto = calculatePTO(
+      (emp.employee_type ?? 'non_executive') as EmployeeType,
+      new Date(emp.start_date),
+      emp.pto_carryover_hours ?? 0,
+      usedHoursMap[emp.id] ?? 0
+    )
+    return pto.currentBalance < 20
+  }).length ?? 0
 
   const stats = [
     { label: 'Total Employees', value: employees?.length ?? 0, color: 'bg-blue-500' },
@@ -56,7 +73,7 @@ export default async function AdminDashboard() {
               <div key={r.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
                 <div>
                   <p className="font-medium text-slate-800 text-sm">{r.profiles?.full_name}</p>
-                  <p className="text-xs text-slate-500">{r.start_date} → {r.end_date} ({r.days_requested}d)</p>
+                  <p className="text-xs text-slate-500">{r.start_date} → {r.end_date} ({(r.hours_requested ?? r.days_requested ?? 0).toFixed(1)} hrs)</p>
                 </div>
                 <a href="/admin/pto" className="text-xs text-blue-600 hover:underline">Review</a>
               </div>

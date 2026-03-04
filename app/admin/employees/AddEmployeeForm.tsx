@@ -15,7 +15,8 @@ export default function AddEmployeeForm() {
     department: '',
     position: '',
     start_date: '',
-    pto_accrual_rate: '1.25',
+    employee_type: 'non_executive',
+    pto_carryover_hours: '0',
     password: '',
   })
 
@@ -42,7 +43,7 @@ export default function AddEmployeeForm() {
     }
 
     setOpen(false)
-    setForm({ full_name: '', username: '', real_email: '', department: '', position: '', start_date: '', pto_accrual_rate: '1.25', password: '' })
+    setForm({ full_name: '', username: '', real_email: '', department: '', position: '', start_date: '', employee_type: 'non_executive', pto_carryover_hours: '0', password: '' })
     router.refresh()
   }
 
@@ -57,7 +58,7 @@ export default function AddEmployeeForm() {
 
       {open && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold text-slate-800">Add New Employee</h3>
               <button onClick={() => setOpen(false)} className="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
@@ -96,16 +97,31 @@ export default function AddEmployeeForm() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Start Date</label>
-                  <input type="date" value={form.start_date} onChange={e => set('start_date', e.target.value)}
-                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400" />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">PTO Accrual (days/month)</label>
-                  <input type="number" step="0.25" min="0" value={form.pto_accrual_rate} onChange={e => set('pto_accrual_rate', e.target.value)}
-                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400" />
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Date of Hire *</label>
+                <input required type="date" value={form.start_date} onChange={e => set('start_date', e.target.value)}
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400" />
+              </div>
+
+              {/* Admin-only: Employee classification */}
+              <div className="border border-slate-200 rounded-xl p-4 bg-slate-50">
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-3">Admin Only</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 mb-1">Employee Type *</label>
+                    <select required value={form.employee_type} onChange={e => set('employee_type', e.target.value)}
+                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 bg-white">
+                      <option value="non_executive">Non-Executive</option>
+                      <option value="executive">Executive</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 mb-1">Prior Year Carryover (hrs)</label>
+                    <input type="number" step="0.01" min="0" max="40" value={form.pto_carryover_hours}
+                      onChange={e => set('pto_carryover_hours', e.target.value)}
+                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400" />
+                    <p className="text-xs text-slate-400 mt-1">Max 40 hrs</p>
+                  </div>
                 </div>
               </div>
 

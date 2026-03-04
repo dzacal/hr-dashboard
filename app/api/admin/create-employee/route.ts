@@ -12,11 +12,17 @@ export async function POST(req: NextRequest) {
   if (profile?.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const body = await req.json()
-  const { full_name, username, real_email, department, position, start_date, pto_accrual_rate, password } = body
+  const { full_name, username, real_email, department, position, start_date, employee_type, pto_carryover_hours, password } = body
 
-  if (!full_name || !username || !real_email || !password) {
+  if (!full_name || !username || !real_email || !password || !start_date) {
     return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 })
   }
+
+  if (!['non_executive', 'executive'].includes(employee_type)) {
+    return NextResponse.json({ error: 'Invalid employee type.' }, { status: 400 })
+  }
+
+  const carryover = Math.min(40, Math.max(0, parseFloat(pto_carryover_hours) || 0))
 
   // Use service role to create auth user
   const adminSupabase = createClient(
@@ -52,8 +58,9 @@ export async function POST(req: NextRequest) {
     role: 'employee',
     department: department || null,
     position: position || null,
-    start_date: start_date || null,
-    pto_accrual_rate: parseFloat(pto_accrual_rate) || 1.25,
+    start_date,
+    employee_type,
+    pto_carryover_hours: carryover,
   })
 
   if (profileError) {
