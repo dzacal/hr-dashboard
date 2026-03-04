@@ -83,14 +83,14 @@ export default async function AdminPTOPage() {
         <table className="w-full text-sm">
           <thead className="bg-slate-50 border-b border-slate-100">
             <tr>
-              {['Employee', 'Type', 'From', 'To', 'Hours', 'Status', 'Submitted'].map(h => (
+              {['Employee', 'Type', 'From', 'To', 'Hours', 'Status', 'Reviewed By', 'Submitted'].map(h => (
                 <th key={h} className="text-left px-5 py-3 text-slate-600 font-semibold text-xs uppercase tracking-wide whitespace-nowrap">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-50">
             {resolved.length === 0 && (
-              <tr><td colSpan={7} className="px-5 py-8 text-center text-slate-400">No history yet.</td></tr>
+              <tr><td colSpan={8} className="px-5 py-8 text-center text-slate-400">No history yet.</td></tr>
             )}
             {resolved.map((r: any) => (
               <tr key={r.id} className="hover:bg-slate-50">
@@ -103,6 +103,14 @@ export default async function AdminPTOPage() {
                   <span className={`px-2 py-1 rounded-full text-xs font-semibold ${r.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                     {r.status}
                   </span>
+                </td>
+                <td className="px-5 py-3 whitespace-nowrap">
+                  {r.reviewed_by ? (
+                    <span className="text-slate-700 text-xs">
+                      {r.reviewed_by}
+                      {r.reviewed_at && <span className="text-slate-400 ml-1">· {new Date(r.reviewed_at).toLocaleDateString()}</span>}
+                    </span>
+                  ) : <span className="text-slate-400">—</span>}
                 </td>
                 <td className="px-5 py-3 text-slate-500 whitespace-nowrap">{new Date(r.created_at).toLocaleDateString()}</td>
               </tr>

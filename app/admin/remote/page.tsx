@@ -48,30 +48,38 @@ export default async function AdminRemotePage() {
       </div>
 
       <h3 className="font-semibold text-slate-600 mb-3">History</h3>
-      <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+      <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 border-b border-slate-100">
             <tr>
-              {['Employee', 'From', 'To', 'Status', 'Submitted'].map(h => (
-                <th key={h} className="text-left px-5 py-3 text-slate-600 font-semibold text-xs uppercase tracking-wide">{h}</th>
+              {['Employee', 'From', 'To', 'Status', 'Reviewed By', 'Submitted'].map(h => (
+                <th key={h} className="text-left px-5 py-3 text-slate-600 font-semibold text-xs uppercase tracking-wide whitespace-nowrap">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-50">
             {resolved.length === 0 && (
-              <tr><td colSpan={5} className="px-5 py-8 text-center text-slate-400">No history yet.</td></tr>
+              <tr><td colSpan={6} className="px-5 py-8 text-center text-slate-400">No history yet.</td></tr>
             )}
             {resolved.map((r: any) => (
               <tr key={r.id} className="hover:bg-slate-50">
-                <td className="px-5 py-3 font-medium text-slate-800">{r.profiles?.full_name}</td>
-                <td className="px-5 py-3 text-slate-600">{r.start_date}</td>
-                <td className="px-5 py-3 text-slate-600">{r.end_date}</td>
+                <td className="px-5 py-3 font-medium text-slate-800 whitespace-nowrap">{r.profiles?.full_name}</td>
+                <td className="px-5 py-3 text-slate-600 whitespace-nowrap">{r.start_date}</td>
+                <td className="px-5 py-3 text-slate-600 whitespace-nowrap">{r.end_date}</td>
                 <td className="px-5 py-3">
                   <span className={`px-2 py-1 rounded-full text-xs font-semibold ${r.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                     {r.status}
                   </span>
                 </td>
-                <td className="px-5 py-3 text-slate-500">{new Date(r.created_at).toLocaleDateString()}</td>
+                <td className="px-5 py-3 whitespace-nowrap">
+                  {r.reviewed_by ? (
+                    <span className="text-slate-700 text-xs">
+                      {r.reviewed_by}
+                      {r.reviewed_at && <span className="text-slate-400 ml-1">· {new Date(r.reviewed_at).toLocaleDateString()}</span>}
+                    </span>
+                  ) : <span className="text-slate-400">—</span>}
+                </td>
+                <td className="px-5 py-3 text-slate-500 whitespace-nowrap">{new Date(r.created_at).toLocaleDateString()}</td>
               </tr>
             ))}
           </tbody>

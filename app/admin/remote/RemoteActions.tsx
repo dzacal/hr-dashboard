@@ -10,7 +10,21 @@ export default function RemoteActions({ id, employeeEmail, employeeName }: { id:
 
   async function update(status: 'approved' | 'declined') {
     setLoading(true)
-    await supabase.from('remote_requests').update({ status }).eq('id', id)
+
+    // Get the current admin's name for the audit log
+    const { data: { user } } = await supabase.auth.getUser()
+    let reviewedBy = 'Admin'
+    if (user) {
+      const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', user.id).single()
+      if (profile?.full_name) reviewedBy = profile.full_name
+    }
+
+    await supabase.from('remote_requests').update({
+      status,
+      reviewed_by: reviewedBy,
+      reviewed_at: new Date().toISOString(),
+    }).eq('id', id)
+
     await fetch('/api/notify/pto-decision', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
