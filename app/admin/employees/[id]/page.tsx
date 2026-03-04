@@ -5,6 +5,7 @@ import { calculatePTO, getTier } from '@/lib/pto'
 import type { EmployeeType } from '@/lib/pto'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import ResetPasswordButton from './ResetPasswordButton'
 
 function row(label: string, value: string | null | undefined) {
   return (
@@ -54,11 +55,14 @@ export default async function EmployeeDetailPage({ params }: { params: Promise<{
           <h2 className="text-2xl font-bold text-slate-800">{emp.full_name}</h2>
           <p className="text-slate-500 mt-1">{emp.position || '—'} · {emp.department || '—'}</p>
         </div>
-        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-          emp.employee_type === 'executive' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
-        }`}>
-          {emp.employee_type === 'executive' ? 'Executive' : 'Non-Executive'}
-        </span>
+        <div className="flex items-center gap-3">
+          <ResetPasswordButton employeeId={emp.id} employeeName={emp.full_name} />
+          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+            emp.employee_type === 'executive' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
+          }`}>
+            {emp.employee_type === 'executive' ? 'Executive' : 'Non-Executive'}
+          </span>
+        </div>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-4 mb-8">
