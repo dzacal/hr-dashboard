@@ -9,10 +9,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (!user) redirect('/')
 
   const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  const userRole = profile?.role ?? 'employee'
 
-  // Pure employees have no admin access
-  if (userRole === 'employee') redirect('/employee')
+  // Only block pure employees — if profile is null, don't default to employee
+  if (profile?.role === 'employee') redirect('/employee')
+
+  const userRole = profile?.role ?? 'admin'
 
   return (
     <div className="flex min-h-screen bg-slate-50">
