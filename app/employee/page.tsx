@@ -1,7 +1,13 @@
 export const dynamic = 'force-dynamic'
 
 import { createClient } from '@/lib/supabase/server'
-import { differenceInMonths } from 'date-fns'
+import { calculatePTO } from '@/lib/pto'
+import type { EmployeeType } from '@/lib/pto'
+
+function fmt(hours: number) {
+  const days = hours / 8
+  return `${hours.toFixed(1)} hrs (${days % 1 === 0 ? days.toFixed(0) : days.toFixed(1)} days)`
+}
 
 export default async function EmployeeDashboard() {
   const supabase = await createClient()
@@ -31,14 +37,22 @@ export default async function EmployeeDashboard() {
     .eq('employee_id', user!.id)
     .order('created_at', { ascending: false })
 
-  // Calculate PTO balance
-  const startDate = profile?.start_date ? new Date(profile.start_date) : new Date()
-  const monthsWorked = Math.max(0, differenceInMonths(new Date(), startDate))
-  const accrualRate = profile?.pto_accrual_rate ?? 1.25
-  const totalAccrued = monthsWorked * accrualRate
-  const usedDays = ptoRequests?.filter(r => r.status === 'approved').reduce((sum: number, r: any) => sum + r.days_requested, 0) ?? 0
-  const pendingDays = ptoRequests?.filter(r => r.status === 'pending').reduce((sum: number, r: any) => sum + r.days_requested, 0) ?? 0
-  const availableDays = Math.max(0, totalAccrued - usedDays)
+  const approvedUsedHours = ptoRequests
+    ?.filter(r => r.status === 'approved')
+    .reduce((s: number, r: any) => s + (r.hours_requested ?? r.days_requested ?? 0), 0) ?? 0
+
+  const pendingHours = ptoRequests
+    ?.filter(r => r.status === 'pending')
+    .reduce((s: number, r: any) => s + (r.hours_requested ?? r.days_requested ?? 0), 0) ?? 0
+
+  const pto = profile?.start_date
+    ? calculatePTO(
+        (profile.employee_type ?? 'non_executive') as EmployeeType,
+        new Date(profile.start_date),
+        profile.pto_carryover_hours ?? 0,
+        approvedUsedHours
+      )
+    : null
 
   return (
     <div>
@@ -48,13 +62,13 @@ export default async function EmployeeDashboard() {
       {/* PTO Balance Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {[
-          { label: 'Available PTO', value: `${availableDays.toFixed(1)} days`, color: 'text-green-600' },
-          { label: 'Total Accrued', value: `${totalAccrued.toFixed(1)} days`, color: 'text-blue-600' },
-          { label: 'Used', value: `${usedDays.toFixed(1)} days`, color: 'text-slate-600' },
-          { label: 'Pending', value: `${pendingDays.toFixed(1)} days`, color: 'text-amber-600' },
+          { label: 'Available PTO', value: pto ? fmt(pto.currentBalance) : '—', color: 'text-green-600' },
+          { label: 'Total Accrued', value: pto ? fmt(pto.currentYearAccrued) : '—', color: 'text-blue-600' },
+          { label: 'Used', value: pto ? fmt(approvedUsedHours) : '—', color: 'text-slate-600' },
+          { label: 'Pending', value: pto ? fmt(pendingHours) : '—', color: 'text-amber-600' },
         ].map(({ label, value, color }) => (
           <div key={label} className="bg-white rounded-xl p-5 shadow-sm border border-slate-100">
-            <p className={`text-2xl font-bold ${color}`}>{value}</p>
+            <p className={`text-lg font-bold ${color}`}>{value}</p>
             <p className="text-sm text-slate-500 mt-1">{label}</p>
           </div>
         ))}
@@ -69,19 +83,22 @@ export default async function EmployeeDashboard() {
           </div>
           {ptoRequests?.length === 0 && <p className="text-slate-400 text-sm">No PTO requests yet.</p>}
           <div className="space-y-3">
-            {ptoRequests?.slice(0, 4).map((r: any) => (
-              <div key={r.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                <div>
-                  <p className="text-sm font-medium text-slate-700">{r.start_date} → {r.end_date}</p>
-                  <p className="text-xs text-slate-500">{r.days_requested} day(s)</p>
+            {ptoRequests?.slice(0, 4).map((r: any) => {
+              const hrs = r.hours_requested ?? r.days_requested ?? 0
+              return (
+                <div key={r.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                  <div>
+                    <p className="text-sm font-medium text-slate-700">{r.start_date} → {r.end_date}</p>
+                    <p className="text-xs text-slate-500">{fmt(hrs)}</p>
+                  </div>
+                  <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                    r.status === 'approved' ? 'bg-green-100 text-green-700' :
+                    r.status === 'declined' ? 'bg-red-100 text-red-700' :
+                    'bg-amber-100 text-amber-700'
+                  }`}>{r.status}</span>
                 </div>
-                <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                  r.status === 'approved' ? 'bg-green-100 text-green-700' :
-                  r.status === 'declined' ? 'bg-red-100 text-red-700' :
-                  'bg-amber-100 text-amber-700'
-                }`}>{r.status}</span>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
 

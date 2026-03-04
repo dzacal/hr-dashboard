@@ -63,6 +63,7 @@ function EmployeeTable({ employees, showPTO }: { employees: any[]; showPTO: bool
                       {pto ? (
                         <span className={`font-semibold ${pto.currentBalance >= pto.accrualStopBalance ? 'text-amber-600' : 'text-green-600'}`}>
                           {pto.currentBalance.toFixed(2)} hrs
+                          <span className="font-normal text-slate-400 ml-1">({(pto.currentBalance / 8).toFixed(1)} days)</span>
                         </span>
                       ) : '—'}
                     </td>

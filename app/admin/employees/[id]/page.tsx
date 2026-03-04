@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import ResetPasswordButton from './ResetPasswordButton'
 import EmployeeStatusToggle from './EmployeeStatusToggle'
+import DeleteEmployeeButton from './DeleteEmployeeButton'
 
 function row(label: string, value: string | null | undefined) {
   return (
@@ -15,6 +16,11 @@ function row(label: string, value: string | null | undefined) {
       <dd className="text-sm text-slate-800">{value || <span className="text-slate-400">—</span>}</dd>
     </div>
   )
+}
+
+function fmtHrs(hours: number) {
+  const days = hours / 8
+  return { hrs: hours.toFixed(2), days: days % 1 === 0 ? days.toFixed(0) : days.toFixed(1) }
 }
 
 export default async function EmployeeDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -44,6 +50,7 @@ export default async function EmployeeDetailPage({ params }: { params: Promise<{
     : null
 
   const tier = pto ? getTier((emp.employee_type ?? 'non_executive') as EmployeeType, pto.monthsOfService) : null
+  const balance = pto ? fmtHrs(pto.currentBalance) : null
 
   return (
     <div>
@@ -56,12 +63,13 @@ export default async function EmployeeDetailPage({ params }: { params: Promise<{
           <h2 className="text-2xl font-bold text-slate-800">{emp.full_name}</h2>
           <p className="text-slate-500 mt-1">{emp.position || '—'} · {emp.department || '—'}</p>
         </div>
-        <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex items-center gap-3 flex-wrap justify-end">
           {emp.is_active === false && (
             <span className="px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">Inactive</span>
           )}
           <EmployeeStatusToggle employeeId={emp.id} isActive={emp.is_active !== false} />
           <ResetPasswordButton employeeId={emp.id} employeeName={emp.full_name} />
+          <DeleteEmployeeButton employeeId={emp.id} employeeName={emp.full_name} />
           <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
             emp.employee_type === 'executive' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
           }`}>
@@ -74,8 +82,9 @@ export default async function EmployeeDetailPage({ params }: { params: Promise<{
         <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-100">
           <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">PTO Balance</p>
           <p className={`text-2xl font-bold ${pto && pto.currentBalance >= pto.accrualStopBalance ? 'text-amber-600' : 'text-green-600'}`}>
-            {pto ? `${pto.currentBalance.toFixed(2)} hrs` : '—'}
+            {balance ? `${balance.hrs} hrs` : '—'}
           </p>
+          {balance && <p className="text-xs text-slate-400 mt-0.5">{balance.days} days</p>}
         </div>
         <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-100">
           <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Accrual Rate</p>
