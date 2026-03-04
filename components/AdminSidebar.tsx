@@ -50,13 +50,13 @@ export default function AdminSidebar({ userRole }: { userRole: string }) {
 
         {userRole === 'both' && (
           <div className="pt-3 mt-3 border-t border-slate-700">
-            <Link
-              href="/employee"
-              className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
+            <button
+              onClick={() => { window.location.href = '/employee' }}
+              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
             >
               <span>↔</span>
               Switch to Employee View
-            </Link>
+            </button>
           </div>
         )}
       </nav>
