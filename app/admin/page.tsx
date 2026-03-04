@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 import { createClient } from '@/lib/supabase/server'
 import { calculatePTO } from '@/lib/pto'
 import type { EmployeeType } from '@/lib/pto'
+import { getHolidays } from '@/lib/holidays'
 
 const CATEGORY_LABELS: Record<string, string> = {
   vacation: 'Vacation',
@@ -75,6 +76,7 @@ export default async function AdminDashboard() {
   ]
 
   const todayLabel = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+  const todayHoliday = getHolidays(new Date().getFullYear()).find(h => h.dateStr === today)
 
   return (
     <div>
@@ -98,8 +100,15 @@ export default async function AdminDashboard() {
           <span className="text-xs text-slate-400 font-medium">{todayLabel}</span>
         </div>
 
+        {todayHoliday && (
+          <div className="flex items-center gap-3 mb-4 px-4 py-3 bg-amber-50 border border-amber-200 rounded-lg">
+            <span className="text-lg">🗓️</span>
+            <p className="text-sm font-medium text-amber-800">Today is <span className="font-semibold">{todayHoliday.name}</span> — a company holiday.</p>
+          </div>
+        )}
+
         {(todayPTO?.length ?? 0) === 0 && (todayRemote?.length ?? 0) === 0 ? (
-          <p className="text-slate-400 text-sm">All employees are in the office today.</p>
+          <p className="text-slate-400 text-sm">{todayHoliday ? 'No additional leave or remote activity.' : 'All employees are in the office today.'}</p>
         ) : (
           <div className="grid sm:grid-cols-2 gap-4">
             {/* On PTO */}
