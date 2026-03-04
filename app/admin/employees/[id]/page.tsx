@@ -8,6 +8,7 @@ import { notFound } from 'next/navigation'
 import ResetPasswordButton from './ResetPasswordButton'
 import EmployeeStatusToggle from './EmployeeStatusToggle'
 import DeleteEmployeeButton from './DeleteEmployeeButton'
+import RoleSelector from './RoleSelector'
 
 function row(label: string, value: string | null | undefined) {
   return (
@@ -31,7 +32,7 @@ export default async function EmployeeDetailPage({ params }: { params: Promise<{
     .from('profiles')
     .select('*, pto_requests(hours_requested, status)')
     .eq('id', id)
-    .eq('role', 'employee')
+    .in('role', ['employee', 'admin', 'both'])
     .single()
 
   if (!emp) notFound()
@@ -96,6 +97,11 @@ export default async function EmployeeDetailPage({ params }: { params: Promise<{
           <p className="text-2xl font-bold text-slate-800">{pto ? `${pto.monthsOfService} mo` : '—'}</p>
           <p className="text-xs text-slate-400">months of service</p>
         </div>
+      </div>
+
+      {/* Portal Access */}
+      <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6 mb-6">
+        <RoleSelector employeeId={emp.id} currentRole={emp.role} />
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">

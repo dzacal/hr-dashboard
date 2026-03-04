@@ -11,7 +11,7 @@ const links = [
   { href: '/employee/messages', label: 'HR Messages', icon: '✉️' },
 ]
 
-export default function EmployeeSidebar() {
+export default function EmployeeSidebar({ userRole }: { userRole: string }) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
@@ -47,6 +47,18 @@ export default function EmployeeSidebar() {
             </Link>
           )
         })}
+
+        {userRole === 'both' && (
+          <div className="pt-3 mt-3 border-t border-slate-700">
+            <Link
+              href="/admin"
+              className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
+            >
+              <span>↔</span>
+              Switch to Admin View
+            </Link>
+          </div>
+        )}
       </nav>
 
       <div className="p-4 border-t border-slate-700">

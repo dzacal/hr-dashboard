@@ -40,7 +40,7 @@ export default function LoginPage() {
       return
     }
 
-    router.push(profile.role === 'admin' ? '/admin' : '/employee')
+    router.push(profile.role === 'employee' ? '/employee' : '/admin')
     router.refresh()
   }
 

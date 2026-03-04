@@ -1,9 +1,18 @@
 import EmployeeSidebar from '@/components/EmployeeSidebar'
+import { createClient } from '@/lib/supabase/server'
 
-export default function EmployeeLayout({ children }: { children: React.ReactNode }) {
+export default async function EmployeeLayout({ children }: { children: React.ReactNode }) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  let userRole = 'employee'
+  if (user) {
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+    userRole = profile?.role ?? 'employee'
+  }
+
   return (
     <div className="flex min-h-screen bg-slate-50">
-      <EmployeeSidebar />
+      <EmployeeSidebar userRole={userRole} />
       <main className="flex-1 p-8">{children}</main>
     </div>
   )

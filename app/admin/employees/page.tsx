@@ -90,7 +90,7 @@ export default async function EmployeesPage() {
   const { data: allEmployees } = await supabase
     .from('profiles')
     .select('*, pto_requests(hours_requested, status)')
-    .eq('role', 'employee')
+    .in('role', ['employee', 'both'])
     .order('created_at', { ascending: false })
 
   const active = allEmployees?.filter(e => e.is_active !== false) ?? []
