@@ -46,7 +46,7 @@ export default function MessageReply({
           onFocus={markRead}
           placeholder="Write a reply..."
           rows={2}
-          className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 resize-none"
+          className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 text-slate-900 resize-none"
         />
       </div>
       <button type="submit" disabled={loading || !reply.trim()}

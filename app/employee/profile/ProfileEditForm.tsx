@@ -60,7 +60,7 @@ export default function ProfileEditForm({ profile }: { profile: Profile }) {
     router.refresh()
   }
 
-  const inputClass = 'w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400'
+  const inputClass = 'w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-400'
   const labelClass = 'block text-xs font-semibold text-slate-600 mb-1'
 
   return (

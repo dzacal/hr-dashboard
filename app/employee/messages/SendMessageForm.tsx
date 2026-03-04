@@ -60,12 +60,12 @@ export default function SendMessageForm({ userId, adminEmail }: { userId: string
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1">Subject *</label>
                 <input required value={form.subject} onChange={e => set('subject', e.target.value)}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400" />
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 text-slate-900" />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1">Message *</label>
                 <textarea required value={form.message} onChange={e => set('message', e.target.value)} rows={5}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 resize-none" />
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 text-slate-900 resize-none" />
               </div>
 
               {error && <p className="text-red-600 text-sm bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
