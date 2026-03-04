@@ -4,8 +4,30 @@ import { createClient } from '@/lib/supabase/server'
 import { calculatePTO } from '@/lib/pto'
 import type { EmployeeType } from '@/lib/pto'
 
+const CATEGORY_LABELS: Record<string, string> = {
+  vacation: 'Vacation',
+  sick: 'Sick Leave',
+  maternity_paternity: 'Maternity/Paternity',
+  jury_duty: 'Jury Duty',
+  bereavement: 'Bereavement',
+  personal: 'Personal',
+  other: 'Other',
+}
+
+const CATEGORY_COLORS: Record<string, string> = {
+  vacation: 'bg-sky-100 text-sky-700',
+  sick: 'bg-red-100 text-red-700',
+  maternity_paternity: 'bg-pink-100 text-pink-700',
+  jury_duty: 'bg-amber-100 text-amber-700',
+  bereavement: 'bg-slate-200 text-slate-700',
+  personal: 'bg-violet-100 text-violet-700',
+  other: 'bg-gray-100 text-gray-700',
+}
+
 export default async function AdminDashboard() {
   const supabase = await createClient()
+
+  const today = new Date().toISOString().split('T')[0]
 
   const [
     { data: employees },
@@ -13,12 +35,16 @@ export default async function AdminDashboard() {
     { data: remotePending },
     { data: messages },
     { data: allPtoRequests },
+    { data: todayPTO },
+    { data: todayRemote },
   ] = await Promise.all([
-    supabase.from('profiles').select('*, pto_requests(hours_requested, status)').eq('role', 'employee'),
+    supabase.from('profiles').select('*, pto_requests(hours_requested, status)').eq('role', 'employee').eq('is_active', true),
     supabase.from('pto_requests').select('*, profiles(full_name)').eq('status', 'pending'),
     supabase.from('remote_requests').select('*, profiles(full_name)').eq('status', 'pending'),
     supabase.from('hr_messages').select('*, profiles(full_name)').eq('status', 'unread').order('created_at', { ascending: false }),
     supabase.from('pto_requests').select('employee_id, hours_requested, status'),
+    supabase.from('pto_requests').select('*, profiles(full_name)').eq('status', 'approved').lte('start_date', today).gte('end_date', today),
+    supabase.from('remote_requests').select('*, profiles(full_name)').eq('status', 'approved').lte('start_date', today).gte('end_date', today),
   ])
 
   // Build a map of used hours per employee
@@ -42,11 +68,13 @@ export default async function AdminDashboard() {
   }).length ?? 0
 
   const stats = [
-    { label: 'Total Employees', value: employees?.length ?? 0, color: 'bg-blue-500' },
+    { label: 'Active Employees', value: employees?.length ?? 0, color: 'bg-blue-500' },
     { label: 'Pending PTO', value: ptoPending?.length ?? 0, color: 'bg-amber-500' },
     { label: 'Pending Remote', value: remotePending?.length ?? 0, color: 'bg-purple-500' },
     { label: 'Unread Messages', value: messages?.length ?? 0, color: 'bg-rose-500' },
   ]
+
+  const todayLabel = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
 
   return (
     <div>
@@ -61,6 +89,71 @@ export default async function AdminDashboard() {
             <p className="text-sm text-slate-500 mt-1">{label}</p>
           </div>
         ))}
+      </div>
+
+      {/* Today at a Glance */}
+      <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-semibold text-slate-700">Today at a Glance</h3>
+          <span className="text-xs text-slate-400 font-medium">{todayLabel}</span>
+        </div>
+
+        {(todayPTO?.length ?? 0) === 0 && (todayRemote?.length ?? 0) === 0 ? (
+          <p className="text-slate-400 text-sm">All employees are in the office today.</p>
+        ) : (
+          <div className="grid sm:grid-cols-2 gap-4">
+            {/* On PTO */}
+            <div>
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                Out on Leave ({todayPTO?.length ?? 0})
+              </p>
+              {(todayPTO?.length ?? 0) === 0 ? (
+                <p className="text-sm text-slate-400">No one on leave today.</p>
+              ) : (
+                <div className="space-y-2">
+                  {todayPTO?.map((r: any) => {
+                    const catKey = r.leave_category ?? 'vacation'
+                    return (
+                      <div key={r.id} className="flex items-center gap-3 p-2.5 bg-slate-50 rounded-lg">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-slate-800 truncate">{r.profiles?.full_name}</p>
+                          <p className="text-xs text-slate-400">thru {r.end_date}</p>
+                        </div>
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap ${CATEGORY_COLORS[catKey] ?? 'bg-gray-100 text-gray-700'}`}>
+                          {CATEGORY_LABELS[catKey] ?? catKey}
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Working Remote */}
+            <div>
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                Working Remote ({todayRemote?.length ?? 0})
+              </p>
+              {(todayRemote?.length ?? 0) === 0 ? (
+                <p className="text-sm text-slate-400">No one working remote today.</p>
+              ) : (
+                <div className="space-y-2">
+                  {todayRemote?.map((r: any) => (
+                    <div key={r.id} className="flex items-center gap-3 p-2.5 bg-slate-50 rounded-lg">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-slate-800 truncate">{r.profiles?.full_name}</p>
+                        <p className="text-xs text-slate-400">thru {r.end_date}</p>
+                      </div>
+                      <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-700 whitespace-nowrap">
+                        Remote
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">

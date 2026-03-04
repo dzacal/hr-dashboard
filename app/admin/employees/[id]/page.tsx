@@ -6,6 +6,7 @@ import type { EmployeeType } from '@/lib/pto'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import ResetPasswordButton from './ResetPasswordButton'
+import EmployeeStatusToggle from './EmployeeStatusToggle'
 
 function row(label: string, value: string | null | undefined) {
   return (
@@ -55,7 +56,11 @@ export default async function EmployeeDetailPage({ params }: { params: Promise<{
           <h2 className="text-2xl font-bold text-slate-800">{emp.full_name}</h2>
           <p className="text-slate-500 mt-1">{emp.position || '—'} · {emp.department || '—'}</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
+          {emp.is_active === false && (
+            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">Inactive</span>
+          )}
+          <EmployeeStatusToggle employeeId={emp.id} isActive={emp.is_active !== false} />
           <ResetPasswordButton employeeId={emp.id} employeeName={emp.full_name} />
           <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
             emp.employee_type === 'executive' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'

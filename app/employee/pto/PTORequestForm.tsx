@@ -4,13 +4,23 @@ import { useRouter } from 'next/navigation'
 import { differenceInBusinessDays, parseISO } from 'date-fns'
 import { createClient } from '@/lib/supabase/client'
 
+const LEAVE_CATEGORIES = [
+  { value: 'vacation', label: 'Vacation' },
+  { value: 'sick', label: 'Sick Leave' },
+  { value: 'maternity_paternity', label: 'Maternity / Paternity' },
+  { value: 'jury_duty', label: 'Jury Duty' },
+  { value: 'bereavement', label: 'Bereavement' },
+  { value: 'personal', label: 'Personal' },
+  { value: 'other', label: 'Other' },
+]
+
 export default function PTORequestForm({ userId, availableDays, adminEmail }: { userId: string; availableDays: number; adminEmail: string }) {
   const supabase = createClient()
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [form, setForm] = useState({ start_date: '', end_date: '', reason: '' })
+  const [form, setForm] = useState({ start_date: '', end_date: '', reason: '', leave_category: 'vacation' })
 
   const availableHours = availableDays * 8
 
@@ -42,6 +52,7 @@ export default function PTORequestForm({ userId, availableDays, adminEmail }: { 
       end_date: form.end_date,
       hours_requested: hours,
       reason: form.reason,
+      leave_category: form.leave_category,
       status: 'pending',
     })
 
@@ -54,7 +65,7 @@ export default function PTORequestForm({ userId, availableDays, adminEmail }: { 
     })
 
     setOpen(false)
-    setForm({ start_date: '', end_date: '', reason: '' })
+    setForm({ start_date: '', end_date: '', reason: '', leave_category: 'vacation' })
     router.refresh()
     setLoading(false)
   }
@@ -75,6 +86,16 @@ export default function PTORequestForm({ userId, availableDays, adminEmail }: { 
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Leave Type *</label>
+                <select required value={form.leave_category} onChange={e => set('leave_category', e.target.value)}
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 text-slate-900 bg-white">
+                  {LEAVE_CATEGORIES.map(c => (
+                    <option key={c.value} value={c.value}>{c.label}</option>
+                  ))}
+                </select>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-slate-600 mb-1">Start Date *</label>
