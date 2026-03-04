@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 
 const links = [
   { href: '/employee', label: 'My Dashboard', icon: '⊞' },
+  { href: '/employee/profile', label: 'My Profile', icon: '👤' },
   { href: '/employee/pto', label: 'PTO Request', icon: '📅' },
   { href: '/employee/remote', label: 'Remote Request', icon: '🏠' },
   { href: '/employee/messages', label: 'HR Messages', icon: '✉️' },

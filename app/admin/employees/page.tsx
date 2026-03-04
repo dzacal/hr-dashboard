@@ -29,14 +29,14 @@ export default async function EmployeesPage() {
         <table className="w-full text-sm">
           <thead className="bg-slate-50 border-b border-slate-100">
             <tr>
-              {['Name', 'Username', 'Department', 'Position', 'Hire Date', 'Type', 'Months', 'PTO Balance', 'Accrual Rate'].map(h => (
+              {['Name', 'Username', 'Department', 'Position', 'Hire Date', 'Type', 'Months', 'PTO Balance', 'Accrual Rate', ''].map(h => (
                 <th key={h} className="text-left px-4 py-3 text-slate-600 font-semibold text-xs uppercase tracking-wide whitespace-nowrap">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-50">
             {employees?.length === 0 && (
-              <tr><td colSpan={9} className="px-5 py-8 text-center text-slate-400">No employees yet. Add your first one above.</td></tr>
+              <tr><td colSpan={10} className="px-5 py-8 text-center text-slate-400">No employees yet. Add your first one above.</td></tr>
             )}
             {employees?.map((emp: any) => {
               const usedHours = emp.pto_requests
@@ -80,6 +80,9 @@ export default async function EmployeesPage() {
                   </td>
                   <td className="px-4 py-3 text-slate-600 whitespace-nowrap">
                     {tier ? `${tier.accrualPerPeriod} hrs/period` : '—'}
+                  </td>
+                  <td className="px-4 py-3">
+                    <a href={`/admin/employees/${emp.id}`} className="text-xs text-blue-600 hover:underline whitespace-nowrap">View →</a>
                   </td>
                 </tr>
               )
