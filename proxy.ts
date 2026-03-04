@@ -40,15 +40,15 @@ export async function proxy(request: NextRequest) {
 
     // Logged in user on login page → send to their dashboard
     if (pathname === '/') {
-      return NextResponse.redirect(new URL(role === 'admin' ? '/admin' : '/employee', request.url))
+      return NextResponse.redirect(new URL(role === 'employee' ? '/employee' : '/admin', request.url))
     }
 
-    // Employee trying to access admin → block
-    if (pathname.startsWith('/admin') && role !== 'admin') {
+    // Pure employees cannot access admin
+    if (pathname.startsWith('/admin') && role === 'employee') {
       return NextResponse.redirect(new URL('/employee', request.url))
     }
 
-    // Admin trying to access employee → redirect to admin
+    // Pure admins cannot access employee portal
     if (pathname.startsWith('/employee') && role === 'admin') {
       return NextResponse.redirect(new URL('/admin', request.url))
     }
