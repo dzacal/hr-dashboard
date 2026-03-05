@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
     // Fetch all active admins
     const { data: admins, error: adminsError } = await supabase
       .from('profiles')
-      .select('id')
+      .select('id, real_email')
       .in('role', ['admin', 'both'])
       .eq('is_active', true)
 
@@ -49,12 +49,16 @@ export async function POST(req: NextRequest) {
       console.log('No admin recipients found for notification')
     }
 
-    if (!adminEmail || !process.env.RESEND_API_KEY) return NextResponse.json({ ok: true })
+    const adminEmails = recipients
+      .map((a: { id: string; real_email?: string }) => a.real_email)
+      .filter(Boolean) as string[]
+
+    if (adminEmails.length === 0 || !process.env.RESEND_API_KEY) return NextResponse.json({ ok: true })
 
     const resend = new Resend(process.env.RESEND_API_KEY)
     await resend.emails.send({
       from: process.env.EMAIL_FROM!,
-      to: adminEmail,
+      to: adminEmails,
       subject: `New ${type} Request`,
       html: `
         <p>A new <strong>${type}</strong> request has been submitted.</p>

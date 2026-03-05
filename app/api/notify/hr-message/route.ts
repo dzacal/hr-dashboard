@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
     const supabase = createServiceClient()
     const { data: admins } = await supabase
       .from('profiles')
-      .select('id')
+      .select('id, real_email')
       .in('role', ['admin', 'both'])
       .eq('is_active', true)
 
@@ -26,12 +26,16 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    if (!adminEmail || !process.env.RESEND_API_KEY) return NextResponse.json({ ok: true })
+    const adminEmails = (admins ?? [])
+      .map((a: any) => a.real_email)
+      .filter(Boolean) as string[]
+
+    if (adminEmails.length === 0 || !process.env.RESEND_API_KEY) return NextResponse.json({ ok: true })
 
     const resend = new Resend(process.env.RESEND_API_KEY)
     await resend.emails.send({
       from: process.env.EMAIL_FROM!,
-      to: adminEmail,
+      to: adminEmails,
       subject: `New HR Message: ${subject}`,
       html: `
         <p>An employee has sent a new HR message.</p>
