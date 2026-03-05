@@ -2,20 +2,32 @@ export const dynamic = 'force-dynamic'
 
 import { createServiceClient } from '@/lib/supabase/service'
 import RemoteActions from './RemoteActions'
+import BackfillRemoteForm from './BackfillRemoteForm'
 
 export default async function AdminRemotePage() {
   const supabase = createServiceClient()
-  const { data: requests } = await supabase
-    .from('remote_requests')
-    .select('*, profiles(full_name, real_email)')
-    .order('created_at', { ascending: false })
+  const [{ data: requests }, { data: employees }] = await Promise.all([
+    supabase
+      .from('remote_requests')
+      .select('*, profiles(full_name, real_email)')
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('profiles')
+      .select('id, full_name')
+      .in('role', ['employee', 'both'])
+      .eq('is_active', true)
+      .order('full_name'),
+  ])
 
   const pending = requests?.filter(r => r.status === 'pending') ?? []
   const resolved = requests?.filter(r => r.status !== 'pending') ?? []
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-slate-800 mb-6">Remote Work Requests</h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold text-slate-800">Remote Work Requests</h2>
+        <BackfillRemoteForm employees={employees ?? []} />
+      </div>
 
       <h3 className="font-semibold text-slate-600 mb-3">Pending ({pending.length})</h3>
       <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden mb-8">
