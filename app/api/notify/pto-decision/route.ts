@@ -9,12 +9,13 @@ export async function POST(req: NextRequest) {
     // Write in-app notification for the employee
     if (employeeId) {
       const supabase = createServiceClient()
+      const isRemote = type === 'Remote Work'
       await supabase.from('notifications').insert({
         user_id: employeeId,
-        type: 'pto_decision',
+        type: isRemote ? 'remote_decision' : 'pto_decision',
         title: `Your ${type} request was ${status}`,
         body: null,
-        link: '/employee/pto',
+        link: isRemote ? '/employee/remote' : '/employee/pto',
       })
     }
 

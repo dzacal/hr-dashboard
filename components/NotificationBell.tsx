@@ -13,6 +13,16 @@ interface Notification {
   created_at: string
 }
 
+const TYPE_ICON: Record<string, string> = {
+  pto_request: '📅',
+  remote_request: '🏠',
+  pto_decision: '✅',
+  remote_decision: '✅',
+  hr_message: '✉️',
+  hr_reply: '💬',
+  report_reminder: '📊',
+}
+
 export default function NotificationBell({
   userId,
   initialCount,
@@ -63,7 +73,6 @@ export default function NotificationBell({
     }
   }, [userId])
 
-  // Close dropdown on outside click
   useEffect(() => {
     function onMouseDown(e: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
@@ -86,6 +95,30 @@ export default function NotificationBell({
       setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
       setUnread(0)
     }
+  }
+
+  async function markAllRead() {
+    await supabase
+      .from('notifications')
+      .update({ read: true })
+      .eq('user_id', userId)
+      .eq('read', false)
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
+    setUnread(0)
+  }
+
+  async function deleteAll() {
+    await supabase.from('notifications').delete().eq('user_id', userId)
+    setNotifications([])
+    setUnread(0)
+  }
+
+  async function deleteOne(id: string, e: React.MouseEvent) {
+    e.stopPropagation()
+    const target = notifications.find((n) => n.id === id)
+    await supabase.from('notifications').delete().eq('id', id)
+    setNotifications((prev) => prev.filter((n) => n.id !== id))
+    if (target && !target.read) setUnread((u) => Math.max(0, u - 1))
   }
 
   function handleClick(n: Notification) {
@@ -134,7 +167,24 @@ export default function NotificationBell({
         <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-slate-200 z-50 overflow-hidden">
           <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
             <h3 className="font-semibold text-slate-800 text-sm">Notifications</h3>
-            {notifications.length > 0 && unread === 0 && (
+            {notifications.length > 0 ? (
+              <div className="flex items-center gap-3">
+                {unread > 0 && (
+                  <button
+                    onClick={markAllRead}
+                    className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                  >
+                    Mark all read
+                  </button>
+                )}
+                <button
+                  onClick={deleteAll}
+                  className="text-xs text-red-500 hover:text-red-700 font-medium"
+                >
+                  Delete all
+                </button>
+              </div>
+            ) : (
               <span className="text-xs text-slate-400">All caught up</span>
             )}
           </div>
@@ -146,33 +196,42 @@ export default function NotificationBell({
               </div>
             ) : (
               notifications.map((n) => (
-                <button
+                <div
                   key={n.id}
-                  onClick={() => handleClick(n)}
-                  className={`w-full text-left px-4 py-3 hover:bg-slate-50 transition-colors ${!n.read ? 'bg-blue-50/60' : ''}`}
+                  className={`flex items-stretch group ${!n.read ? 'bg-blue-50/60' : ''} hover:bg-slate-50 transition-colors`}
                 >
-                  <div className="flex items-start gap-2">
-                    <span className="mt-0.5 text-base leading-none">
-                      {n.type === 'pto_request' && '📅'}
-                      {n.type === 'pto_decision' && '✅'}
-                      {n.type === 'hr_message' && '✉️'}
-                      {n.type === 'hr_reply' && '💬'}
-                      {n.type === 'report_reminder' && '📊'}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-sm truncate ${!n.read ? 'font-semibold text-slate-800' : 'text-slate-700'}`}>
-                        {n.title}
-                      </p>
-                      {n.body && (
-                        <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{n.body}</p>
+                  <button
+                    onClick={() => handleClick(n)}
+                    className="flex-1 text-left px-4 py-3"
+                  >
+                    <div className="flex items-start gap-2">
+                      <span className="mt-0.5 text-base leading-none">
+                        {TYPE_ICON[n.type] ?? '🔔'}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-sm truncate ${!n.read ? 'font-semibold text-slate-800' : 'text-slate-700'}`}>
+                          {n.title}
+                        </p>
+                        {n.body && (
+                          <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{n.body}</p>
+                        )}
+                        <p className="text-xs text-slate-400 mt-1">{timeAgo(n.created_at)}</p>
+                      </div>
+                      {!n.read && (
+                        <span className="mt-1.5 w-2 h-2 bg-blue-500 rounded-full shrink-0" />
                       )}
-                      <p className="text-xs text-slate-400 mt-1">{timeAgo(n.created_at)}</p>
                     </div>
-                    {!n.read && (
-                      <span className="mt-1.5 w-2 h-2 bg-blue-500 rounded-full shrink-0" />
-                    )}
-                  </div>
-                </button>
+                  </button>
+                  <button
+                    onClick={(e) => deleteOne(n.id, e)}
+                    aria-label="Delete notification"
+                    className="px-2 text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors self-stretch flex items-center opacity-0 group-hover:opacity-100"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
               ))
             )}
           </div>

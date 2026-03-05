@@ -3,7 +3,7 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
-export default function RemoteActions({ id, employeeEmail, employeeName }: { id: string; employeeEmail: string; employeeName: string }) {
+export default function RemoteActions({ id, employeeEmail, employeeName, employeeId }: { id: string; employeeEmail: string; employeeName: string; employeeId: string }) {
   const supabase = createClient()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -28,7 +28,7 @@ export default function RemoteActions({ id, employeeEmail, employeeName }: { id:
     await fetch('/api/notify/pto-decision', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ employeeEmail, employeeName, status, type: 'Remote Work' }),
+      body: JSON.stringify({ employeeEmail, employeeName, status, type: 'Remote Work', employeeId }),
     })
     router.refresh()
     setLoading(false)

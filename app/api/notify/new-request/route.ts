@@ -26,10 +26,11 @@ export async function POST(req: NextRequest) {
 
     if (recipients.length > 0) {
       const hoursVal = hours ?? days
+      const isRemote = type === 'Remote Work'
       const { error: insertError } = await supabase.from('notifications').insert(
         recipients.map((a: { id: string }) => ({
           user_id: a.id,
-          type: 'pto_request',
+          type: isRemote ? 'remote_request' : 'pto_request',
           title: `New ${type} Request`,
           body: [
             employeeName || null,
@@ -38,7 +39,7 @@ export async function POST(req: NextRequest) {
           ]
             .filter(Boolean)
             .join(' · '),
-          link: '/admin/pto',
+          link: isRemote ? '/admin/remote' : '/admin/pto',
         }))
       )
       if (insertError) {

@@ -39,7 +39,7 @@ export default async function AdminRemotePage() {
                 <td className="px-5 py-3 text-slate-500 max-w-xs truncate">{r.reason || '—'}</td>
                 <td className="px-5 py-3 text-slate-500">{new Date(r.created_at).toLocaleDateString()}</td>
                 <td className="px-5 py-3">
-                  <RemoteActions id={r.id} employeeEmail={r.profiles?.real_email} employeeName={r.profiles?.full_name} />
+                  <RemoteActions id={r.id} employeeEmail={r.profiles?.real_email} employeeName={r.profiles?.full_name} employeeId={r.employee_id} />
                 </td>
               </tr>
             ))}
