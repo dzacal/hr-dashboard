@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic'
 
 import React from 'react'
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { getYearEndProjection } from '@/lib/pto'
 import type { EmployeeType, PTOYearEndProjection } from '@/lib/pto'
 import PTOActions from './PTOActions'
@@ -83,7 +83,7 @@ function PTOSnapshotRow({ proj, requestHours }: { proj: PTOYearEndProjection; re
 }
 
 export default async function AdminPTOPage() {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { data: requests } = await supabase
     .from('pto_requests')
     .select('*, profiles(full_name, real_email, employee_type, start_date, pto_carryover_hours)')
