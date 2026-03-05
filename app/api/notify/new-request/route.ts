@@ -6,22 +6,28 @@ export async function POST(req: NextRequest) {
   try {
     const { adminEmail, type, days, hours, start, end, employeeName, employeeId } = await req.json()
 
-    // Write in-app notifications for all admins, excluding the requester themselves
     const supabase = createServiceClient()
-    let adminsQuery = supabase
+
+    // Fetch all active admins
+    const { data: admins, error: adminsError } = await supabase
       .from('profiles')
       .select('id')
       .in('role', ['admin', 'both'])
       .eq('is_active', true)
 
-    if (employeeId) adminsQuery = adminsQuery.neq('id', employeeId)
+    if (adminsError) {
+      console.error('Failed to fetch admins:', adminsError)
+    }
 
-    const { data: admins } = await adminsQuery
+    // Filter out the requester if they have both role
+    const recipients = (admins ?? []).filter(
+      (a: { id: string }) => !employeeId || a.id !== employeeId
+    )
 
-    if (admins && admins.length > 0) {
+    if (recipients.length > 0) {
       const hoursVal = hours ?? days
-      await supabase.from('notifications').insert(
-        admins.map((a: any) => ({
+      const { error: insertError } = await supabase.from('notifications').insert(
+        recipients.map((a: { id: string }) => ({
           user_id: a.id,
           type: 'pto_request',
           title: `New ${type} Request`,
@@ -35,6 +41,11 @@ export async function POST(req: NextRequest) {
           link: '/admin/pto',
         }))
       )
+      if (insertError) {
+        console.error('Failed to insert notifications:', insertError)
+      }
+    } else {
+      console.log('No admin recipients found for notification')
     }
 
     if (!adminEmail || !process.env.RESEND_API_KEY) return NextResponse.json({ ok: true })
@@ -46,13 +57,15 @@ export async function POST(req: NextRequest) {
       subject: `New ${type} Request`,
       html: `
         <p>A new <strong>${type}</strong> request has been submitted.</p>
+        ${employeeName ? `<p><strong>Employee:</strong> ${employeeName}</p>` : ''}
         <p><strong>Dates:</strong> ${start} → ${end}</p>
-        ${days ? `<p><strong>Days:</strong> ${days}</p>` : ''}
+        ${hours ? `<p><strong>Hours:</strong> ${hours}</p>` : ''}
         <p>Please log in to the HR Portal to review and approve or decline.</p>
       `,
     })
   } catch (e) {
     console.error('Notify error:', e)
+    return NextResponse.json({ ok: false, error: String(e) }, { status: 500 })
   }
 
   return NextResponse.json({ ok: true })
