@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic'
 
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { calculatePTO } from '@/lib/pto'
 import type { EmployeeType } from '@/lib/pto'
 import { getHolidays } from '@/lib/holidays'
@@ -43,7 +43,7 @@ function getAnniversaries(employees: any[]) {
 }
 
 export default async function AdminDashboard() {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   const today = new Date().toISOString().split('T')[0]
 

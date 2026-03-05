@@ -1,10 +1,10 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { revalidatePath } from 'next/cache'
 
 export async function addReportLink(employeeId: string, title: string, url: string) {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   await supabase
     .from('management_report_links')
     .insert({ employee_id: employeeId, title, url })
@@ -12,7 +12,7 @@ export async function addReportLink(employeeId: string, title: string, url: stri
 }
 
 export async function deleteReportLink(linkId: string, employeeId: string) {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   await supabase
     .from('management_report_links')
     .delete()

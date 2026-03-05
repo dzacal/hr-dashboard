@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic'
 
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { calculatePTO, getTier } from '@/lib/pto'
 import type { EmployeeType } from '@/lib/pto'
 import AddEmployeeForm from './AddEmployeeForm'
@@ -85,7 +85,7 @@ function EmployeeTable({ employees, showPTO }: { employees: any[]; showPTO: bool
 }
 
 export default async function EmployeesPage() {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   const { data: allEmployees } = await supabase
     .from('profiles')

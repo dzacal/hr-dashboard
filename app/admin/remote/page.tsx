@@ -1,10 +1,10 @@
 export const dynamic = 'force-dynamic'
 
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import RemoteActions from './RemoteActions'
 
 export default async function AdminRemotePage() {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { data: requests } = await supabase
     .from('remote_requests')
     .select('*, profiles(full_name, real_email)')
