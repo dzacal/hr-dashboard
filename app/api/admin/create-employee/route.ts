@@ -12,9 +12,9 @@ export async function POST(req: NextRequest) {
   if (profile?.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const body = await req.json()
-  const { full_name, username, real_email, department, position, start_date, employee_type, pto_carryover_hours, password } = body
+  const { full_name, username, real_email, company, department, position, start_date, employee_type, pto_carryover_hours, password } = body
 
-  if (!full_name || !username || !real_email || !password || !start_date) {
+  if (!full_name || !username || !real_email || !password || !start_date || !company) {
     return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 })
   }
 
@@ -56,6 +56,7 @@ export async function POST(req: NextRequest) {
     username: username.toLowerCase(),
     full_name,
     role: 'employee',
+    company: company || null,
     department: department || null,
     position: position || null,
     start_date,

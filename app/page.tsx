@@ -49,7 +49,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md px-4">
         <div className="text-center mb-8">
           <div className="mb-6">
-            <span className="font-[family-name:var(--font-bebas)] text-6xl tracking-[0.15em] text-white leading-none">
+            <span className="text-5xl font-black tracking-[0.18em] text-white leading-none uppercase">
               CHO VENTURES
             </span>
           </div>

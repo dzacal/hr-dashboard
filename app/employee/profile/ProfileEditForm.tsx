@@ -7,6 +7,7 @@ interface Profile {
   username: string
   position: string | null
   department: string | null
+  company: string | null
   start_date: string | null
   birthday: string | null
   cell_phone: string | null
@@ -80,6 +81,10 @@ export default function ProfileEditForm({ profile }: { profile: Profile }) {
           <div>
             <p className="text-xs font-semibold text-slate-500">Hire Date</p>
             <p className="text-sm font-medium text-slate-800 mt-0.5">{profile.start_date ?? '—'}</p>
+          </div>
+          <div className="col-span-2">
+            <p className="text-xs font-semibold text-slate-500">Company</p>
+            <p className="text-sm font-medium text-slate-800 mt-0.5">{profile.company ?? '—'}</p>
           </div>
         </div>
       </div>
