@@ -4,23 +4,32 @@ import { createServiceClient } from '@/lib/supabase/service'
 
 export async function POST(req: NextRequest) {
   try {
-    const { adminEmail, type, days, start, end, employeeName } = await req.json()
+    const { adminEmail, type, days, hours, start, end, employeeName, employeeId } = await req.json()
 
-    // Write in-app notifications for all admins
+    // Write in-app notifications for all admins, excluding the requester themselves
     const supabase = createServiceClient()
-    const { data: admins } = await supabase
+    let adminsQuery = supabase
       .from('profiles')
       .select('id')
       .in('role', ['admin', 'both'])
       .eq('is_active', true)
 
+    if (employeeId) adminsQuery = adminsQuery.neq('id', employeeId)
+
+    const { data: admins } = await adminsQuery
+
     if (admins && admins.length > 0) {
+      const hoursVal = hours ?? days
       await supabase.from('notifications').insert(
         admins.map((a: any) => ({
           user_id: a.id,
           type: 'pto_request',
           title: `New ${type} Request`,
-          body: [employeeName, start && end ? `${start} → ${end}` : null, days ? `${days} days` : null]
+          body: [
+            employeeName || null,
+            start && end ? `${start} → ${end}` : null,
+            hoursVal ? `${hoursVal} hrs` : null,
+          ]
             .filter(Boolean)
             .join(' · '),
           link: '/admin/pto',

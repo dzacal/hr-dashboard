@@ -56,6 +56,7 @@ export default async function EmployeePTOPage() {
         {canRequest && pto && (
           <PTORequestForm
             userId={user!.id}
+            employeeName={profile?.full_name ?? ''}
             availableDays={pto.currentBalance / 8}
             adminEmail={process.env.ADMIN_EMAIL ?? ''}
           />

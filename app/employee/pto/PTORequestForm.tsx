@@ -26,10 +26,12 @@ function partialDayDeduction(hoursEntered: number): number {
 
 export default function PTORequestForm({
   userId,
+  employeeName,
   availableDays,
   adminEmail,
 }: {
   userId: string
+  employeeName: string
   availableDays: number
   adminEmail: string
 }) {
@@ -120,6 +122,8 @@ export default function PTORequestForm({
       body: JSON.stringify({
         adminEmail,
         type: 'PTO',
+        employeeId: userId,
+        employeeName,
         hours,
         start: startDate,
         end: endDate,
