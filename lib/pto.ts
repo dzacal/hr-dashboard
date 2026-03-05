@@ -71,6 +71,35 @@ function monthsBetween(a: Date, b: Date): number {
   return (b.getFullYear() - a.getFullYear()) * 12 + (b.getMonth() - a.getMonth())
 }
 
+export interface PTOYearEndProjection {
+  accruedToDate: number           // carryover + current year accrued as of today
+  projectedYearEnd: number        // carryover + projected full-year accrual by Dec 31
+  currentBalance: number          // what the employee has right now (accrued - used)
+  yearEndBalance: number          // projected balance at Dec 31 (same usage assumed)
+  yearlyMax: number               // policy max hours/year for their tier
+  isExecutive: boolean
+}
+
+export function getYearEndProjection(
+  employeeType: EmployeeType,
+  hireDate: Date,
+  carryoverHours: number,
+  approvedUsedHours: number,
+  referenceDate: Date = new Date()
+): PTOYearEndProjection {
+  const yearEnd = new Date(referenceDate.getFullYear(), 11, 31)
+  const todayCalc = calculatePTO(employeeType, hireDate, carryoverHours, approvedUsedHours, referenceDate)
+  const yearEndCalc = calculatePTO(employeeType, hireDate, carryoverHours, approvedUsedHours, yearEnd)
+  return {
+    accruedToDate: Math.round((todayCalc.carryoverHours + todayCalc.currentYearAccrued) * 100) / 100,
+    projectedYearEnd: Math.round((yearEndCalc.carryoverHours + yearEndCalc.currentYearAccrued) * 100) / 100,
+    currentBalance: todayCalc.currentBalance,
+    yearEndBalance: yearEndCalc.currentBalance,
+    yearlyMax: todayCalc.currentTier.maxAccruedPerYear,
+    isExecutive: employeeType === 'executive',
+  }
+}
+
 export interface PTOCalculation {
   carryoverHours: number         // prior year carryover (manually set)
   currentYearAccrued: number     // accrued this calendar year
