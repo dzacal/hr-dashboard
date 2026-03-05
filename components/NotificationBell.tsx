@@ -64,6 +64,7 @@ export default function NotificationBell({
         (payload) => {
           setNotifications((prev) => [payload.new as Notification, ...prev])
           setUnread((n) => n + 1)
+          playChime()
         }
       )
       .subscribe()
@@ -128,6 +129,29 @@ export default function NotificationBell({
       window.open(n.link, '_blank', 'noopener,noreferrer')
     } else {
       router.push(n.link)
+    }
+  }
+
+  function playChime() {
+    try {
+      const ctx = new AudioContext()
+      const frequencies = [880, 1100, 1320]
+      frequencies.forEach((freq, i) => {
+        const osc = ctx.createOscillator()
+        const gain = ctx.createGain()
+        osc.connect(gain)
+        gain.connect(ctx.destination)
+        osc.type = 'sine'
+        osc.frequency.value = freq
+        const start = ctx.currentTime + i * 0.12
+        gain.gain.setValueAtTime(0, start)
+        gain.gain.linearRampToValueAtTime(0.18, start + 0.02)
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.35)
+        osc.start(start)
+        osc.stop(start + 0.35)
+      })
+    } catch {
+      // AudioContext not available (e.g. SSR or blocked by browser)
     }
   }
 
