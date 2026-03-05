@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { Resend } from 'resend'
+import sgMail from '@sendgrid/mail'
 import { createServiceClient } from '@/lib/supabase/service'
 
 export async function POST(req: NextRequest) {
@@ -45,10 +45,10 @@ export async function POST(req: NextRequest) {
 
     console.log('[hr-message] sending to:', adminEmails, '| RESEND_API_KEY set:', !!process.env.RESEND_API_KEY)
 
-    if (adminEmails.length === 0 || !process.env.RESEND_API_KEY) return NextResponse.json({ ok: true })
+    if (adminEmails.length === 0 || !process.env.SENDGRID_API_KEY) return NextResponse.json({ ok: true })
 
-    const resend = new Resend(process.env.RESEND_API_KEY)
-    const result = await resend.emails.send({
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY)
+    await sgMail.send({
       from: process.env.EMAIL_FROM!,
       to: adminEmails,
       subject: `New HR Message: ${subject}`,
@@ -58,7 +58,6 @@ export async function POST(req: NextRequest) {
         <p>Log in to the HR Portal to read and reply.</p>
       `,
     })
-    console.log('[hr-message] Resend result:', JSON.stringify(result))
   } catch (e) {
     console.error('[hr-message] Notify error:', e)
   }

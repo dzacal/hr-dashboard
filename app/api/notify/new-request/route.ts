@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { Resend } from 'resend'
+import sgMail from '@sendgrid/mail'
 import { createServiceClient } from '@/lib/supabase/service'
 
 export async function POST(req: NextRequest) {
@@ -53,10 +53,10 @@ export async function POST(req: NextRequest) {
       .map((a: { id: string; real_email?: string }) => a.real_email)
       .filter(Boolean) as string[]
 
-    if (adminEmails.length === 0 || !process.env.RESEND_API_KEY) return NextResponse.json({ ok: true })
+    if (adminEmails.length === 0 || !process.env.SENDGRID_API_KEY) return NextResponse.json({ ok: true })
 
-    const resend = new Resend(process.env.RESEND_API_KEY)
-    await resend.emails.send({
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY)
+    await sgMail.send({
       from: process.env.EMAIL_FROM!,
       to: adminEmails,
       subject: `New ${type} Request`,
