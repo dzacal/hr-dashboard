@@ -6,6 +6,7 @@ export const dynamic = 'force-dynamic'
 export default async function EmployeeMessagesPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+  const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', user!.id).single()
 
   const { data: messages } = await supabase
     .from('hr_messages')
@@ -17,7 +18,7 @@ export default async function EmployeeMessagesPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-slate-800">HR Messages</h2>
-        <SendMessageForm userId={user!.id} adminEmail={process.env.ADMIN_EMAIL ?? ''} />
+        <SendMessageForm userId={user!.id} adminEmail={process.env.ADMIN_EMAIL ?? ''} employeeName={profile?.full_name} />
       </div>
 
       {messages?.length === 0 && (

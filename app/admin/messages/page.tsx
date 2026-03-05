@@ -51,6 +51,7 @@ export default async function AdminMessagesPage() {
               existingReply={m.admin_reply}
               employeeEmail={m.profiles?.real_email}
               employeeName={m.profiles?.full_name}
+              employeeId={m.employee_id}
             />
           </div>
         ))}

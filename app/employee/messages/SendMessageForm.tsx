@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
-export default function SendMessageForm({ userId, adminEmail }: { userId: string; adminEmail: string }) {
+export default function SendMessageForm({ userId, adminEmail, employeeName }: { userId: string; adminEmail: string; employeeName?: string }) {
   const supabase = createClient()
   const router = useRouter()
   const [open, setOpen] = useState(false)
@@ -32,7 +32,7 @@ export default function SendMessageForm({ userId, adminEmail }: { userId: string
     await fetch('/api/notify/hr-message', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ adminEmail, subject: form.subject }),
+      body: JSON.stringify({ adminEmail, subject: form.subject, employeeName }),
     })
 
     setOpen(false)

@@ -4,9 +4,9 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 export default function MessageReply({
-  id, status, existingReply, employeeEmail, employeeName
+  id, status, existingReply, employeeEmail, employeeName, employeeId
 }: {
-  id: string; status: string; existingReply?: string; employeeEmail: string; employeeName: string
+  id: string; status: string; existingReply?: string; employeeEmail: string; employeeName: string; employeeId: string
 }) {
   const supabase = createClient()
   const router = useRouter()
@@ -22,7 +22,7 @@ export default function MessageReply({
     await fetch('/api/notify/message-reply', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ employeeEmail, employeeName, reply }),
+      body: JSON.stringify({ employeeEmail, employeeName, reply, employeeId }),
     })
 
     setSent(true)

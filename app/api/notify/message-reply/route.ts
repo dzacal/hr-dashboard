@@ -1,9 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
+import { createServiceClient } from '@/lib/supabase/service'
 
 export async function POST(req: NextRequest) {
   try {
-    const { employeeEmail, employeeName, reply } = await req.json()
+    const { employeeEmail, employeeName, reply, employeeId } = await req.json()
+
+    // Write in-app notification for the employee
+    if (employeeId) {
+      const supabase = createServiceClient()
+      await supabase.from('notifications').insert({
+        user_id: employeeId,
+        type: 'hr_reply',
+        title: 'HR replied to your message',
+        body: reply?.substring(0, 120) ?? null,
+        link: '/employee/messages',
+      })
+    }
+
     if (!employeeEmail || !process.env.RESEND_API_KEY) return NextResponse.json({ ok: true })
 
     const resend = new Resend(process.env.RESEND_API_KEY)
@@ -19,7 +33,7 @@ export async function POST(req: NextRequest) {
       `,
     })
   } catch (e) {
-    console.error('Email error:', e)
+    console.error('Notify error:', e)
   }
 
   return NextResponse.json({ ok: true })

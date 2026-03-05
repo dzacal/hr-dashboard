@@ -3,7 +3,7 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
-export default function PTOActions({ id, employeeEmail, employeeName }: { id: string; employeeEmail: string; employeeName: string }) {
+export default function PTOActions({ id, employeeEmail, employeeName, employeeId }: { id: string; employeeEmail: string; employeeName: string; employeeId: string }) {
   const supabase = createClient()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -28,7 +28,7 @@ export default function PTOActions({ id, employeeEmail, employeeName }: { id: st
     await fetch('/api/notify/pto-decision', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ employeeEmail, employeeName, status, type: 'PTO' }),
+      body: JSON.stringify({ employeeEmail, employeeName, status, type: 'PTO', employeeId }),
     })
     router.refresh()
     setLoading(false)

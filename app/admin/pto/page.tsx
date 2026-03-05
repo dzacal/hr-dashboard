@@ -149,7 +149,7 @@ export default async function AdminPTOPage() {
                     <td className="px-5 py-3 text-slate-500 max-w-xs truncate">{r.reason || '—'}</td>
                     <td className="px-5 py-3 text-slate-500 whitespace-nowrap">{new Date(r.created_at).toLocaleDateString()}</td>
                     <td className="px-5 py-3">
-                      <PTOActions id={r.id} employeeEmail={r.profiles?.real_email} employeeName={r.profiles?.full_name} />
+                      <PTOActions id={r.id} employeeEmail={r.profiles?.real_email} employeeName={r.profiles?.full_name} employeeId={r.employee_id} />
                     </td>
                   </tr>
                   {proj && <PTOSnapshotRow proj={proj} requestHours={requestHours} />}
