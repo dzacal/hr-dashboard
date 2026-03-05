@@ -9,6 +9,14 @@ function fmt(hours: number) {
   return `${hours.toFixed(1)} hrs (${days % 1 === 0 ? days.toFixed(0) : days.toFixed(1)} days)`
 }
 
+function getAnniversaryInfo(startDate: string | null | undefined): { isAnniversary: boolean; years: number } {
+  if (!startDate) return { isAnniversary: false, years: 0 }
+  const today = new Date()
+  const [sy, sm, sd] = startDate.split('-').map(Number)
+  const isAnniversary = sm === today.getMonth() + 1 && sd === today.getDate() && sy < today.getFullYear()
+  return { isAnniversary, years: today.getFullYear() - sy }
+}
+
 export default async function EmployeeDashboard() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -54,10 +62,32 @@ export default async function EmployeeDashboard() {
       )
     : null
 
+  const { isAnniversary, years } = getAnniversaryInfo(profile?.start_date)
+
   return (
     <div>
+      {isAnniversary && (
+        <div className="mb-6 rounded-xl bg-gradient-to-r from-amber-400 to-orange-400 p-5 shadow-md text-white flex items-center gap-4">
+          <span className="text-4xl">🎉</span>
+          <div>
+            <p className="text-lg font-bold">Happy {years}-Year Work Anniversary, {profile?.full_name?.split(' ')[0]}!</p>
+            <p className="text-sm text-amber-100 mt-0.5">Thank you for {years} amazing year{years !== 1 ? 's' : ''} with the team. Here's to many more!</p>
+          </div>
+        </div>
+      )}
+
       <h2 className="text-2xl font-bold text-slate-800 mb-2">Welcome, {profile?.full_name?.split(' ')[0]}!</h2>
       <p className="text-slate-500 mb-8">{profile?.position} · {profile?.department}</p>
+
+      {isAnniversary && (
+        <div className="mb-6 flex items-start gap-3 px-4 py-3 bg-amber-50 border border-amber-200 rounded-lg">
+          <span className="text-xl mt-0.5">🎂</span>
+          <div>
+            <p className="text-sm font-semibold text-amber-800">Work Anniversary Today!</p>
+            <p className="text-xs text-amber-700 mt-0.5">You've been with the company for {years} year{years !== 1 ? 's' : ''} starting {profile?.start_date}. Congratulations!</p>
+          </div>
+        </div>
+      )}
 
       {/* PTO Balance Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

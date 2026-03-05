@@ -12,7 +12,15 @@ const links = [
   { href: '/employee/holidays', label: 'Holidays', icon: '🗓️' },
 ]
 
-export default function EmployeeSidebar({ userRole }: { userRole: string }) {
+interface ReportLink { id: string; title: string; url: string }
+
+export default function EmployeeSidebar({
+  userRole,
+  reportLinks,
+}: {
+  userRole: string
+  reportLinks: ReportLink[]
+}) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
@@ -22,6 +30,11 @@ export default function EmployeeSidebar({ userRole }: { userRole: string }) {
     router.push('/')
     router.refresh()
   }
+
+  // Determine management reports link target
+  const reportsHref =
+    reportLinks.length === 1 ? reportLinks[0].url : '/employee/reports'
+  const reportsExternal = reportLinks.length === 1
 
   return (
     <aside className="w-64 bg-slate-900 min-h-screen flex flex-col">
@@ -48,6 +61,22 @@ export default function EmployeeSidebar({ userRole }: { userRole: string }) {
             </Link>
           )
         })}
+
+        {reportLinks.length > 0 && (
+          <a
+            href={reportsHref}
+            target={reportsExternal ? '_blank' : undefined}
+            rel={reportsExternal ? 'noopener noreferrer' : undefined}
+            className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+              pathname === '/employee/reports'
+                ? 'bg-white text-slate-900'
+                : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+            }`}
+          >
+            <span>📊</span>
+            Management Reports
+          </a>
+        )}
 
         {userRole === 'both' && (
           <div className="pt-3 mt-3 border-t border-slate-700">

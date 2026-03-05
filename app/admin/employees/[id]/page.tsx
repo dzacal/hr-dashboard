@@ -9,6 +9,7 @@ import ResetPasswordButton from './ResetPasswordButton'
 import EmployeeStatusToggle from './EmployeeStatusToggle'
 import DeleteEmployeeButton from './DeleteEmployeeButton'
 import RoleSelector from './RoleSelector'
+import ManagementReportsAdmin from './ManagementReportsAdmin'
 
 function row(label: string, value: string | null | undefined) {
   return (
@@ -28,12 +29,19 @@ export default async function EmployeeDetailPage({ params }: { params: Promise<{
   const { id } = await params
   const supabase = await createClient()
 
-  const { data: emp } = await supabase
-    .from('profiles')
-    .select('*, pto_requests(hours_requested, status)')
-    .eq('id', id)
-    .in('role', ['employee', 'admin', 'both'])
-    .single()
+  const [{ data: emp }, { data: reportLinks }] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('*, pto_requests(hours_requested, status)')
+      .eq('id', id)
+      .in('role', ['employee', 'admin', 'both'])
+      .single(),
+    supabase
+      .from('management_report_links')
+      .select('id, title, url')
+      .eq('employee_id', id)
+      .order('created_at', { ascending: true }),
+  ])
 
   if (!emp) notFound()
 
@@ -135,6 +143,12 @@ export default async function EmployeeDetailPage({ params }: { params: Promise<{
             {row('Relationship', emp.emergency_contact_relationship)}
           </dl>
         </div>
+
+        {/* Management Reports */}
+        <ManagementReportsAdmin
+          employeeId={emp.id}
+          initialLinks={reportLinks ?? []}
+        />
       </div>
     </div>
   )

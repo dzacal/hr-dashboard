@@ -25,6 +25,23 @@ const CATEGORY_COLORS: Record<string, string> = {
   other: 'bg-gray-100 text-gray-700',
 }
 
+function getAnniversaries(employees: any[]) {
+  const now = new Date()
+  const todayMonth = now.getMonth() + 1
+  const todayDay = now.getDate()
+  const todayYear = now.getFullYear()
+  return employees
+    .filter(emp => {
+      if (!emp.start_date) return false
+      const [sy, sm, sd] = (emp.start_date as string).split('-').map(Number)
+      return sm === todayMonth && sd === todayDay && sy < todayYear
+    })
+    .map(emp => ({
+      ...emp,
+      years: todayYear - Number(emp.start_date.split('-')[0]),
+    }))
+}
+
 export default async function AdminDashboard() {
   const supabase = await createClient()
 
@@ -47,6 +64,8 @@ export default async function AdminDashboard() {
     supabase.from('pto_requests').select('*, profiles(full_name)').eq('status', 'approved').lte('start_date', today).gte('end_date', today),
     supabase.from('remote_requests').select('*, profiles(full_name)').eq('status', 'approved').lte('start_date', today).gte('end_date', today),
   ])
+
+  const anniversaryEmployees = getAnniversaries(employees ?? [])
 
   // Build a map of used hours per employee
   const usedHoursMap: Record<string, number> = {}
@@ -104,6 +123,22 @@ export default async function AdminDashboard() {
           <div className="flex items-center gap-3 mb-4 px-4 py-3 bg-amber-50 border border-amber-200 rounded-lg">
             <span className="text-lg">🗓️</span>
             <p className="text-sm font-medium text-amber-800">Today is <span className="font-semibold">{todayHoliday.name}</span> — a company holiday.</p>
+          </div>
+        )}
+
+        {anniversaryEmployees.length > 0 && (
+          <div className="mb-4 px-4 py-3 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-lg">
+            <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-2">🎉 Work Anniversaries Today</p>
+            <div className="space-y-1.5">
+              {anniversaryEmployees.map(emp => (
+                <div key={emp.id} className="flex items-center justify-between">
+                  <p className="text-sm font-medium text-amber-900">{emp.full_name}</p>
+                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-200 text-amber-800">
+                    {emp.years} year{emp.years !== 1 ? 's' : ''}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
